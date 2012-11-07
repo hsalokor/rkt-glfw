@@ -201,8 +201,8 @@
 
 (define-glfw glfwInit (_fun -> (ret : _int)
                             -> (check ret "glfwInit")))
-
 (define-glfw glfwTerminate (_fun -> _void))
+
 (define-glfw glfwOpenWindow (_fun _int _int
                                   _int _int _int _int
                                   _int _int
