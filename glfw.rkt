@@ -198,6 +198,7 @@
 
 (provide glfwInit)
 (provide glfwTerminate)
+(provide glfwGetVersion)
 
 (define-glfw glfwInit (_fun -> (ret : _int)
                             -> (check ret "glfwInit")))
