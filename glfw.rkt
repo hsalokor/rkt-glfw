@@ -183,6 +183,13 @@
 ; Time spans longer than this (seconds) are considered to be infinity
 (define GLFW_INFINITY 100000.0)
 
+; The video mode structure used by glfwGetVideoModes()
+(define-cstruct _GLFWvidmode ([Width _int]
+                              [Height _int]
+                              [RedBits _int]
+                              [BlueBits _int]
+                              [GreenBits _int]))
+
 (define (check v who)
   (unless (= GL_TRUE v)
     (error who "failed: ~a" v)))
