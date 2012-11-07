@@ -190,6 +190,11 @@
                               [BlueBits _int]
                               [GreenBits _int]))
 
+(define-cstruct _GLFWimage ([Width _int]
+                            [Height _int]
+                            [Format _int]
+                            [BytesPerPixel _int]
+                            [Data (_ptr io _byte)]))
 (define (check v who)
   (unless (= GL_TRUE v)
     (error who "failed: ~a" v)))
