@@ -230,5 +230,10 @@
   (define-glfw glfwOpenWindow (_fun _int _int
                                     _int _int _int _int
                                     _int _int
-                                    _int -> _int)))
+                                    _int -> _int)
+    #:wrap (deallocator))
 
+  (define-glfw glfwOpenWindowHint (_fun _int _int -> _void))
+
+  (define-glfw glfwCloseWindow (_fun -> _void)
+    #:wrap (allocator glfwOpenWindow)))
