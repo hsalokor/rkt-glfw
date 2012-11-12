@@ -1,6 +1,7 @@
 (module glfw/unsafe racket/base
   (require ffi/unsafe
-           ffi/unsafe/define)
+           ffi/unsafe/define
+           ffi/unsafe/alloc)
 
   (provide (except-out (all-defined-out)
                        check))
@@ -214,8 +215,12 @@
   (define-ffi-definer define-glfw (ffi-lib "libglfw"))
 
   (define-glfw glfwInit (_fun -> (ret : _int)
-                              -> (check ret "glfwInit")))
-  (define-glfw glfwTerminate (_fun -> _void))
+                              -> (check ret "glfwInit"))
+    #:wrap (deallocator))
+
+  (define-glfw glfwTerminate (_fun -> _void)
+    #:wrap (allocator glfwInit))
+
   (define-glfw glfwGetVersion (_fun (major : (_ptr o _int))
                                     (minor : (_ptr o _int)) 
                                     (rev : (_ptr o _int)) 
