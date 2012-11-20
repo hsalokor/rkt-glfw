@@ -215,12 +215,8 @@
   (define-ffi-definer define-glfw (ffi-lib "libglfw"))
 
   (define-glfw glfwInit (_fun -> (ret : _int)
-                              -> (check ret "glfwInit"))
-    #:wrap (deallocator))
-
-  (define-glfw glfwTerminate (_fun -> _void)
-    #:wrap (allocator glfwInit))
-
+                              -> (check ret "glfwInit")))
+  (define-glfw glfwTerminate (_fun -> _void))
   (define-glfw glfwGetVersion (_fun (major : (_ptr o _int))
                                     (minor : (_ptr o _int)) 
                                     (rev : (_ptr o _int)) 
@@ -230,13 +226,11 @@
   (define-glfw glfwOpenWindow (_fun _int _int
                                     _int _int _int _int
                                     _int _int
-                                    _int -> _int)
-    #:wrap (deallocator))
-
+                                    _int
+                                    -> (ret : _int)
+                                    -> (check ret "glfwOpenWindow")))
   (define-glfw glfwOpenWindowHint (_fun _int _int -> _void))
-
-  (define-glfw glfwCloseWindow (_fun -> _void)
-    #:wrap (allocator glfwOpenWindow))
+  (define-glfw glfwCloseWindow (_fun -> _void))
 
   (define-glfw glfwSetWindowTitle (_fun _path -> _void))
   (define-glfw glfwGetWindowSize (_fun (width : (_ptr o _int))
