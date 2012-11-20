@@ -238,3 +238,4 @@
                                        -> _void
                                        -> (values width height)))
   (define-glfw glfwSetWindowSize (_fun _int _int -> _void))
+  (define-glfw glfwSetWindowPos (_fun _int _int -> _void))
