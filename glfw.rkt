@@ -236,4 +236,11 @@
   (define-glfw glfwOpenWindowHint (_fun _int _int -> _void))
 
   (define-glfw glfwCloseWindow (_fun -> _void)
-    #:wrap (allocator glfwOpenWindow)))
+    #:wrap (allocator glfwOpenWindow))
+
+  (define-glfw glfwSetWindowTitle (_fun _path -> _void))
+  (define-glfw glfwGetWindowSize (_fun (width : (_ptr o _int))
+                                       (height : (_ptr o _int))
+                                       -> _void
+                                       -> (values width height)))
+  (define-glfw glfwSetWindowSize (_fun _int _int -> _void)))
