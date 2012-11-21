@@ -241,4 +241,8 @@
   (define-glfw glfwSetWindowPos (_fun _int _int -> _void))
 
   (define-glfw glfwIconifyWindow (_fun -> _void))
-  (define-glfw glfwRestoreWindow (_fun -> _void)))
+  (define-glfw glfwRestoreWindow (_fun -> _void))
+
+  (define-glfw glfwSwapBuffers (_fun -> _void))
+  (define-glfw glfwSwapInterval (_fun _int -> _void))
+  (define-glfw glfwGetWindowParam (_fun _int -> _int)))
