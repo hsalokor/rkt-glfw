@@ -8,8 +8,8 @@
       #:before (lambda () (glfwInit))
       #:after (lambda () (glfwTerminate)) 
 
-   (test-case "glfwGetVersion returns valid version information"
-              (let-values ([(major minor rev) (glfwGetVersion)]) 
-                (check-not-eq? major 0)
-                (check-not-eq? minor 0)
-                (check-not-eq? rev 0)))))
+      (test-case "glfwGetVersion returns valid version information"
+                 (let-values ([(major minor rev) (glfwGetVersion)]) 
+                   (check-not-eq? major 0)
+                   (check-not-eq? minor 0)
+                   (check-not-eq? rev 0)))))
