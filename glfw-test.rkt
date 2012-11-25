@@ -27,4 +27,19 @@
                              GLFW_FULLSCREEN)
              (glfwCloseWindow)))
 
+(define-test-suite glfw-window-functions
+  #:before (lambda ()
+             (glfwInit)
+             (glfwOpenWindow 400 300
+                             8 8 8
+                             0 0 0
+                             GLFW_WINDOW))
+  #:after (lambda ()
+            (glfwCloseWindow)
+            (glfwTerminate))
+
+  (test-case "Setting window title succeeds"
+             (glfwSetWindowTitle "Test title")))
+
 (run-tests glfw-init)
+(run-tests glfw-window-functions)
