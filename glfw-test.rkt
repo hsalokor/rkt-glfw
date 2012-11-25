@@ -39,7 +39,11 @@
             (glfwTerminate))
 
   (test-case "Setting window title succeeds"
-             (glfwSetWindowTitle "Test title")))
+             (glfwSetWindowTitle "Test title"))
+
+  (test-case "Window iconify and restore succeeds"
+             (glfwIconifyWindow)
+             (glfwRestoreWindow)))
 
 (run-tests glfw-init)
 (run-tests glfw-window-functions)
