@@ -38,6 +38,15 @@
             (glfwCloseWindow)
             (glfwTerminate))
 
+  (test-case "Setting and getting window size succeeds"
+             (glfwSetWindowSize 350 250)
+             (let-values ([(x y) (glfwGetWindowSize)])
+               (check-eq? x 350)
+               (check-eq? y 250)))
+
+  (test-case "Setting window position succeeds"
+             (glfwSetWindowPos 10 10))
+
   (test-case "Setting window title succeeds"
              (glfwSetWindowTitle "Test title"))
 
