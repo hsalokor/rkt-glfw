@@ -1,58 +1,57 @@
 #lang racket/base
-(require (planet schematics/schemeunit:3:4))
-(require (planet schematics/schemeunit:3:4/text-ui))
-(require "glfw.rkt")
 
-(define-test-suite glfw-init
-  #:before (lambda () (glfwInit))
-  #:after (lambda () (glfwTerminate)) 
+(module+ test
+  (require "glfw.rkt"
+           racket/function
+           rackunit
+           rackunit/text-ui)
 
-  (test-case "Version query succeeds with non-zero values"
-             (let-values ([(major minor rev) (glfwGetVersion)]) 
-               (check-not-eq? major 0)
-               (check-not-eq? minor 0)
-               (check-not-eq? rev 0)))
+  (define (check-not-= x y) (check-false (= x y)))
 
-  (test-case "Opening window in windowed mode succeeds"
-             (glfwOpenWindow 400 300
-                             8 8 8
-                             0 0 0
-                             GLFW_WINDOW)
-             (glfwCloseWindow))
+  (define-test-suite initialization
+    #:before glfwInit
+    #:after glfwTerminate
 
-  (test-case "Opening window in fullscreen mode succeeds"
-             (glfwOpenWindow 640 480
-                             8 8 8
-                             0 0 0
-                             GLFW_FULLSCREEN)
-             (glfwCloseWindow)))
+    (test-case "Version query succeeds with non-zero values"
+               (let-values ([(major minor rev) (glfwGetVersion)])
+                 (check-not-= major 0)
+                 (check-not-= minor 0)
+                 (check-not-= rev 0)))
 
-(define-test-suite glfw-window-functions
-  #:before (lambda ()
-             (glfwInit)
-             (glfwOpenWindow 400 300
-                             8 8 8
-                             0 0 0
-                             GLFW_WINDOW))
-  #:after (lambda ()
-            (glfwCloseWindow)
-            (glfwTerminate))
+    (test-case "Opening window in windowed mode succeeds"
+               (let ([window (glfwCreateWindow 400 300 "Main window" #f #f)])
+                 (glfwDestroyWindow window)))
 
-  (test-case "Setting and getting window size succeeds"
-             (glfwSetWindowSize 350 250)
-             (let-values ([(x y) (glfwGetWindowSize)])
-               (check-eq? x 350)
-               (check-eq? y 250)))
+    (test-case "Opening window in fullscreen mode succeeds"
+               (let ([window (glfwCreateWindow 400 300 "Main window" (glfwGetPrimaryMonitor) #f)])
+                 (glfwDestroyWindow window))))
 
-  (test-case "Setting window position succeeds"
-             (glfwSetWindowPos 10 10))
+  (define window #f)
+  (define-test-suite window-functions
+    #:before (thunk
+               (glfwInit)
+               (set! window
+                 (glfwCreateWindow 400 300 "Main window" #f #f)))
+    #:after (thunk
+              (glfwDestroyWindow window)
+              (glfwTerminate))
 
-  (test-case "Setting window title succeeds"
-             (glfwSetWindowTitle "Test title"))
+    (test-case "Setting and getting window size succeeds"
+               (glfwSetWindowSize window 350 250)
+               (sleep 1) ; There is a slight delay before the size is actually set
+               (let-values ([(x y) (glfwGetWindowSize window)])
+                 (check-equal? x 350)
+                 (check-equal? y 250)))
 
-  (test-case "Window iconify and restore succeeds"
-             (glfwIconifyWindow)
-             (glfwRestoreWindow)))
+    (test-case "Setting window position succeeds"
+               (glfwSetWindowPos window 10 10))
 
-(run-tests glfw-init)
-(run-tests glfw-window-functions)
+    (test-case "Setting window title succeeds"
+               (glfwSetWindowTitle window "Test title"))
+
+    (test-case "Window iconify and restore succeeds"
+               (glfwIconifyWindow window)
+               (glfwRestoreWindow window)))
+
+  (run-tests initialization)
+  (run-tests window-functions))
