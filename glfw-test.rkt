@@ -2,6 +2,8 @@
 
 (module+ test
   (require "glfw.rkt"
+           disposable
+           fixture
            racket/function
            rackunit
            rackunit/text-ui)
@@ -26,32 +28,33 @@
                (let ([window (glfwCreateWindow 400 300 "Main window" (glfwGetPrimaryMonitor) #f)])
                  (glfwDestroyWindow window))))
 
-  (define window #f)
-  (define-test-suite window-functions
-    #:before (thunk
-               (glfwInit)
-               (set! window
-                 (glfwCreateWindow 400 300 "Main window" #f #f)))
-    #:after (thunk
-              (glfwDestroyWindow window)
-              (glfwTerminate))
+  (define (create-window)
+    (glfwInit)
+    (glfwCreateWindow 400 300 "Main window" #f #f))
+  (define (destroy-window window)
+    (glfwDestroyWindow window)
+    (glfwTerminate))
 
+  (define-fixture window (disposable create-window destroy-window))
+
+  (test-case/fixture "window-functions"
+    #:fixture window
     (test-case "Setting and getting window size succeeds"
-               (glfwSetWindowSize window 350 250)
+               (glfwSetWindowSize (current-window) 350 250)
                (sleep 1) ; There is a slight delay before the size is actually set
-               (let-values ([(x y) (glfwGetWindowSize window)])
+               (let-values ([(x y) (glfwGetWindowSize (current-window))])
                  (check-equal? x 350)
                  (check-equal? y 250)))
 
-    (test-case "Setting window position succeeds"
-               (glfwSetWindowPos window 10 10))
+    (test-case "Setting (current-window) position succeeds"
+               (glfwSetWindowPos (current-window) 10 10))
 
-    (test-case "Setting window title succeeds"
-               (glfwSetWindowTitle window "Test title"))
+    (test-case "Setting (current-window) title succeeds"
+               (glfwSetWindowTitle (current-window) "Test title"))
 
     (test-case "Window iconify and restore succeeds"
-               (glfwIconifyWindow window)
-               (glfwRestoreWindow window)))
+               (glfwIconifyWindow (current-window))
+               (glfwRestoreWindow (current-window))))
 
   (run-tests initialization)
-  (run-tests window-functions))
+  )
