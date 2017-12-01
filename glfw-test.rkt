@@ -8,25 +8,23 @@
            rackunit
            rackunit/text-ui)
 
-  (define (check-not-= x y) (check-false (= x y)))
-
   (define-test-suite initialization
     #:before glfwInit
     #:after glfwTerminate
 
     (test-case "Version query succeeds with non-zero values"
-               (let-values ([(major minor rev) (glfwGetVersion)])
-                 (check-not-= major 0)
-                 (check-not-= minor 0)
-                 (check-not-= rev 0)))
+      (define-values (major minor rev) (glfwGetVersion))
+      (check-not-equal? major 0)
+      (check-not-equal? minor 0)
+      (check-not-equal? rev 0))
 
     (test-case "Opening window in windowed mode succeeds"
-               (let ([window (glfwCreateWindow 400 300 "Main window" #f #f)])
-                 (glfwDestroyWindow window)))
+      (define window (glfwCreateWindow 400 300 "Main window" #f #f))
+      (glfwDestroyWindow window))
 
     (test-case "Opening window in fullscreen mode succeeds"
-               (let ([window (glfwCreateWindow 400 300 "Main window" (glfwGetPrimaryMonitor) #f)])
-                 (glfwDestroyWindow window))))
+      (define window (glfwCreateWindow 400 300 "Main window" (glfwGetPrimaryMonitor) #f))
+      (glfwDestroyWindow window)))
 
   (define (create-window)
     (glfwInit)
@@ -40,21 +38,21 @@
   (test-case/fixture "window-functions"
     #:fixture window
     (test-case "Setting and getting window size succeeds"
-               (glfwSetWindowSize (current-window) 350 250)
-               (sleep 1) ; There is a slight delay before the size is actually set
-               (let-values ([(x y) (glfwGetWindowSize (current-window))])
-                 (check-equal? x 350)
-                 (check-equal? y 250)))
+      (glfwSetWindowSize (current-window) 350 250)
+      (sleep 1) ; There is a slight delay before the size is actually set
+      (define-values (x y) (glfwGetWindowSize (current-window)))
+      (check-equal? x 350)
+      (check-equal? y 250))
 
     (test-case "Setting (current-window) position succeeds"
-               (glfwSetWindowPos (current-window) 10 10))
+      (glfwSetWindowPos (current-window) 10 10))
 
     (test-case "Setting (current-window) title succeeds"
-               (glfwSetWindowTitle (current-window) "Test title"))
+      (glfwSetWindowTitle (current-window) "Test title"))
 
     (test-case "Window iconify and restore succeeds"
-               (glfwIconifyWindow (current-window))
-               (glfwRestoreWindow (current-window))))
+      (glfwIconifyWindow (current-window))
+      (glfwRestoreWindow (current-window))))
 
   (run-tests initialization)
   )
