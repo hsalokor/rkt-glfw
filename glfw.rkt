@@ -356,16 +356,20 @@
    [blueBits _int]
    [refreshRate _int]))
 
-(define-cstruct _GLFWgammaramp
+(define-cstruct _GLFWgammaramp   ;TODO: Quizas haya que corregir
   ([red (_ptr o _ushort)]
    [green (_ptr o _ushort)]
    [blue (_ptr o _ushort)]
    [size _int]))
 
+
+
 (define-cstruct _GLFWimage
   ([width _int]
    [height _int]
    [pixels (_ptr o _uint8)]))
+
+
 
 (define-simple-macro (define-ffi-functions lib:expr (name:id (ctype:expr ...)) ...)
   (begin (define-ffi-definer lib-definer lib) (lib-definer name (_fun ctype ...)) ...))
@@ -429,21 +433,24 @@
   (glfwSetTime                        ((time : _double) -> _void))
   (glfwGetTimerValue                  (-> _uint64))
   (glfwGetTimerFrequency              (-> _uint64))
-  
-  
-  
-  
-  (glfwGetMonitors                    ((count : (_ptr o _int)) -> (_ptr o _pointer)))
+
+  ;MONITOR
+  (glfwGetMonitors                    ((count : (_ptr o _int)) -> (monitors : _pointer) -> (values monitors count)))
   (glfwGetPrimaryMonitor              (-> _pointer))
   (glfwGetMonitorPos                  ((monitor : _pointer) (xpos : (_ptr o _int)) (ypos : (_ptr o _int)) -> _void -> (values xpos ypos)))
+  (glfwGetMonitorWorkarea             ((monitor : _pointer) (xpos : (_ptr o _int)) (ypos : (_ptr o _int)) (width : (_ptr o _int)) (height : (_ptr o _int)) -> _void -> (values xpos ypos width height)))
   (glfwGetMonitorPhysicalSize         ((monitor : _pointer) (widthMM : (_ptr o _int)) (heightMM : (_ptr o _int)) -> _void -> (values widthMM heightMM)))
+  (glfwGetMonitorContentScale         ((monitor : _pointer) (xscale : (_ptr o _float)) (yscale : (_ptr o _float)) -> _void -> (values xscale yscale)))
   (glfwGetMonitorName                 ((monitor : _pointer) -> _string/utf-8))
-  (glfwSetMonitorCallback             (GLFWmonitorfun -> GLFWmonitorfun))
-  (glfwGetVideoModes                  ((monitor : _pointer) (count : (_ptr o _int)) -> (_ptr o _GLFWvidmode)))
-  (glfwGetVideoMode                   ((monitor : _pointer) -> (_ptr o _GLFWvidmode)))
+  (glfwSetMonitorUserPointer          ((monitor : _pointer) -> (pointer : _pointer) -> _void))
+  (glfwGetMonitorUserPointer          ((monitor : _pointer) -> _pointer))
+  (glfwSetMonitorCallback             ((callback : GLFWmonitorfun) -> GLFWmonitorfun))
+  (glfwGetVideoModes                  ((monitor : _pointer) (count : (_ptr o _int)) -> (modes : _GLFWvidmode-pointer) -> (values modes count)))
+  (glfwGetVideoMode                   ((monitor : _pointer) -> _GLFWvidmode-pointer))
   (glfwSetGamma                       ((monitor : _pointer) (gamma : _float) -> _void))
-  (glfwGetGammaRamp                   ((monitor : _pointer) -> (_ptr o _GLFWgammaramp)))
-  (glfwSetGammaRamp                   ((monitor : _pointer) -> (_ptr o _GLFWgammaramp)))
+  (glfwGetGammaRamp                   ((monitor : _pointer) -> _GLFWgammaramp-pointer))
+  (glfwSetGammaRamp                   ((monitor : _pointer) _GLFWgammaramp-pointer -> _void))
+
   (glfwDefaultWindowHints             (-> _void))
   (glfwWindowHint                     ((hint : _int) (value : _int) -> _void))
   (glfwCreateWindow                   ((width : _int) (height : _int) (title : _string/utf-8) (monitor : _pointer) (share : _pointer) -> _pointer)) ; returns GLFWwindow *
