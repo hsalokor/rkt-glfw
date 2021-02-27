@@ -8,8 +8,16 @@
   (begin (define name value) ...))
 
 (defines
+
+  ;Context reference
+  (GLFWglproc                     (_fun -> _void))
+  
   (GLFW_TRUE                      1)
   (GLFW_FALSE                     0)
+  (GLFW_JOYSTICK_HAT_BUTTONS      #x00050001)
+  (GLFW_COCOA_CHDIR_RESOURCES     #x00051001)
+  (GLFW_COCOA_MENUBAR             #x00051002)
+  
   (GLFW_RELEASE                   0)
   (GLFW_PRESS                     1)
   (GLFW_REPEAT                    2)
@@ -243,10 +251,10 @@
   (GLFW_DISCONNECTED              #x00040002)
   (GLFW_DONT_CARE                 -1)
   
-  (GLFWglproc                     (_fun -> _void))
+  
+  (GLFWerrorfun                   (_fun _int _string/utf-8 -> _void))
   
   (GLFWvkproc                     (_ptr o (_fun -> _void)))
-  (GLFWerrorfun                   (_ptr o (_fun _int _string/utf-8 -> _void)))
   (GLFWwindowposfun               (_ptr o (_fun _pointer _int _int -> _void)))
   (GLFWwindowsizefun              (_ptr o (_fun _pointer _int _int -> _void)))
   (GLFWwindowclosefun             (_ptr o (_fun _pointer -> _void)))
@@ -288,6 +296,15 @@
   (begin (define-ffi-definer lib-definer lib) (lib-definer name (_fun ctype ...)) ...))
 
 (define-ffi-functions (ffi-lib "glfw3")
+
+  ;Context reference
+  (glfwMakeContextCurrent             ((window : _pointer) -> _void))
+  (glfwGetCurrentContext              (-> _pointer))
+  (glfwSwapInterval                   ((interval : _int) -> _void))
+  (glfwExtensionSupported             ((extension : _string/utf-8) -> _int))
+  (glfwGetProcAddress                 ((procname : _string/utf-8) -> GLFWglproc))
+  
+  
   (glfwInit                           (-> _int))
   (glfwTerminate                      (-> _void))
   (glfwGetVersion                     ((major : (_ptr o _int)) (minor : (_ptr o _int)) (rev : (_ptr o _int)) -> _void -> (values major minor rev)))
@@ -372,12 +389,11 @@
   (glfwSetTime                        ((time : _double) -> _void))
   (glfwGetTimerValue                  (-> _uint64))
   (glfwGetTimerFrequency              (-> _uint64))
-  (glfwMakeContextCurrent             ((window : _pointer) -> _void))
-  (glfwGetCurrentContext              (-> _pointer)) 
+  
+   
   (glfwSwapBuffers                    ((window : _pointer) -> _void))
-  (glfwSwapInterval                   ((interval : _int) -> _void))
-  (glfwExtensionSupported             ((extension : _string/utf-8) -> _int))
-  (glfwGetProcAddress                 ((procname : _string/utf-8) -> GLFWglproc))
+  
+  
   (glfwVulkanSupported                (-> _int));
   (glfwGetRequiredInstanceExtensions  ((count : (_ptr o _uint32)) -> (_ptr o _string/utf-8)))
 
