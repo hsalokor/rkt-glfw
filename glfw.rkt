@@ -13,6 +13,9 @@
   (GLFWglproc                     (_fun -> _void))
 
   ;INTIALIZATION, VERSION AND ERROR
+  (GLFW_VERSION_MAJOR             3)
+  (GLFW_VERSION_MINOR             3)
+  (GLFW_VERSION_REVISION          3)
   (GLFW_TRUE                      1)
   (GLFW_FALSE                     0)
   (GLFW_JOYSTICK_HAT_BUTTONS      #x00050001)
@@ -33,6 +36,9 @@
   (GLFW_NO_WINDOW_CONTEXT         #x0001000A)
 
   ;INPUT
+  (GLFW_RELEASE                   0)
+  (GLFW_PRESS                     1)
+  (GLFW_REPEAT                    2)
   (GLFWmousebuttonfun             (_fun _pointer _int _int _int -> _void))
   (GLFWcursorposfun               (_fun _pointer _double _double -> _void))
   (GLFWcursorenterfun             (_fun _pointer _int -> _void))
@@ -250,12 +256,9 @@
   (GLFW_HRESIZE_CURSOR            #x00036005)
   (GLFW_VRESIZE_CURSOR            #x00036006)
   
-
+  ;MONITOR
+  (GLFWmonitorfun                 (_fun _pointer _int -> _void))
   
-  
-  (GLFW_RELEASE                   0)
-  (GLFW_PRESS                     1)
-  (GLFW_REPEAT                    2)
   
   
   
@@ -336,15 +339,15 @@
   (GLFWwindowfocusfun             (_ptr o (_fun _pointer _int -> _void)))
   (GLFWwindowiconifyfun           (_ptr o (_fun _pointer _int -> _void)))
   (GLFWframebuffersizefun         (_ptr o (_fun _pointer _int _int -> _void)))
-  
-  
-  
-  
-  
-  
-  (GLFWmonitorfun                 (_ptr o (_fun _pointer _int -> _void)))
   )
 
+
+;INPUT
+(define-cstruct _GLFWgamepadstate
+  ([buttons (_array _wchar 15)]
+   [axes (_array _float 6)]))
+
+;MONITOR
 (define-cstruct _GLFWvidmode
   ([width _int]
    [height _int]
@@ -417,8 +420,17 @@
   (glfwGetJoystickUserPointer         ((jid : _int) -> _pointer))
   (glfwJoystickIsGamepad              ((jid : _int) -> _int))
   (glfwSetJoystickCallback            ((callback : GLFWjoystickfun) -> GLFWjoystickfun))
-
-  ; Siguiente: glfwUpdateGamepadMappings https://www.glfw.org/docs/latest/group__input.html#gafd0493dc32cd5ca5810e6148c0c026ea
+  (glfwUpdateGamepadMappings          ((string : _string/utf-8) -> _int))
+  (glfwGetGamepadName                 ((jid : _int) -> _string/utf-8))
+  (glfwGetGamepadState                ((jid : _int) (state : (_ptr o _GLFWgamepadstate)) -> (connected : _int) -> (values connected state)))
+  (glfwSetClipboardString             ((window : _pointer) (string : _string/utf-8) -> _void))
+  (glfwGetClipboardString             ((window : _pointer) -> _string/utf-8))
+  (glfwGetTime                        (-> _double))
+  (glfwSetTime                        ((time : _double) -> _void))
+  (glfwGetTimerValue                  (-> _uint64))
+  (glfwGetTimerFrequency              (-> _uint64))
+  
+  
   
   
   (glfwGetMonitors                    ((count : (_ptr o _int)) -> (_ptr o _pointer)))
@@ -477,25 +489,6 @@
   
   
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  (glfwSetClipboardString             ((window : _pointer) (string : _string/utf-8) -> _void))
-  (glfwGetClipboardString             ((window : _pointer) -> _string/utf-8))
-  (glfwGetTime                        (-> _double))
-  (glfwSetTime                        ((time : _double) -> _void))
-  (glfwGetTimerValue                  (-> _uint64))
-  (glfwGetTimerFrequency              (-> _uint64))
   
    
   (glfwSwapBuffers                    ((window : _pointer) -> _void))
