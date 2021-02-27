@@ -242,7 +242,9 @@
   (GLFW_CONNECTED                 #x00040001)
   (GLFW_DISCONNECTED              #x00040002)
   (GLFW_DONT_CARE                 -1)
-  (GLFWglproc                     (_ptr o (_fun -> _void)))
+  
+  (GLFWglproc                     (_fun -> _void))
+  
   (GLFWvkproc                     (_ptr o (_fun -> _void)))
   (GLFWerrorfun                   (_ptr o (_fun _int _string/utf-8 -> _void)))
   (GLFWwindowposfun               (_ptr o (_fun _pointer _int _int -> _void)))
@@ -285,7 +287,7 @@
 (define-simple-macro (define-ffi-functions lib:expr (name:id (ctype:expr ...)) ...)
   (begin (define-ffi-definer lib-definer lib) (lib-definer name (_fun ctype ...)) ...))
 
-(define-ffi-functions (ffi-lib "libglfw")
+(define-ffi-functions (ffi-lib "glfw3")
   (glfwInit                           (-> _int))
   (glfwTerminate                      (-> _void))
   (glfwGetVersion                     ((major : (_ptr o _int)) (minor : (_ptr o _int)) (rev : (_ptr o _int)) -> _void -> (values major minor rev)))
@@ -371,7 +373,7 @@
   (glfwGetTimerValue                  (-> _uint64))
   (glfwGetTimerFrequency              (-> _uint64))
   (glfwMakeContextCurrent             ((window : _pointer) -> _void))
-  (glfwGetCurrentContext              (-> _pointer)) ; returns GLFWwindow*
+  (glfwGetCurrentContext              (-> _pointer)) 
   (glfwSwapBuffers                    ((window : _pointer) -> _void))
   (glfwSwapInterval                   ((interval : _int) -> _void))
   (glfwExtensionSupported             ((extension : _string/utf-8) -> _int))
