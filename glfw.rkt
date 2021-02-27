@@ -259,15 +259,7 @@
   ;MONITOR
   (GLFWmonitorfun                 (_fun _pointer _int -> _void))
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
+  ;WINDOW
   (GLFW_FOCUSED                   #x00020001)
   (GLFW_ICONIFIED                 #x00020002)
   (GLFW_RESIZABLE                 #x00020003)
@@ -276,6 +268,10 @@
   (GLFW_AUTO_ICONIFY              #x00020006)
   (GLFW_FLOATING                  #x00020007)
   (GLFW_MAXIMIZED                 #x00020008)
+  (GLFW_CENTER_CURSOR             #x00020009)
+  (GLFW_TRANSPARENT_FRAMEBUFFER   #x0002000A)
+  (GLFW_HOVERED                   #x0002000B)
+  (GLFW_FOCUS_ON_SHOW             #x0002000C)
   (GLFW_RED_BITS                  #x00021001)
   (GLFW_GREEN_BITS                #x00021002)
   (GLFW_BLUE_BITS                 #x00021003)
@@ -303,6 +299,25 @@
   (GLFW_CONTEXT_RELEASE_BEHAVIOR  #x00022009)
   (GLFW_CONTEXT_NO_ERROR          #x0002200A)
   (GLFW_CONTEXT_CREATION_API      #x0002200B)
+  (GLFW_SCALE_TO_MONITOR          #x0002200C)
+  (GLFW_COCOA_RETINA_FRAMEBUFFER  #x00023001)
+  (GLFW_COCOA_FRAME_NAME          #x00023002)
+  (GLFW_COCOA_GRAPHICS_SWITCHING  #x00023003)
+  (GLFW_X11_CLASS_NAME            #x00024001)
+  (GLFW_X11_INSTANCE_NAME         #x00024002)
+  (GLFWwindowposfun               (_fun _pointer _int _int -> _void))
+  (GLFWwindowsizefun              (_fun _pointer _int _int -> _void))
+  (GLFWwindowclosefun             (_fun _pointer -> _void))
+  (GLFWwindowrefreshfun           (_fun _pointer -> _void))
+  (GLFWwindowfocusfun             (_fun _pointer _int -> _void))
+  (GLFWwindowiconifyfun           (_fun _pointer _int -> _void))
+  (GLFWwindowmaximizefun          (_fun _pointer _int -> _void))
+  (GLFWframebuffersizefun         (_fun _pointer _int _int -> _void))
+  (GLFWwindowcontentscalefun      (_fun _pointer _float _float -> _void))
+
+
+  
+  
   (GLFW_NO_API                    0)
   (GLFW_OPENGL_API                #x00030001)
   (GLFW_OPENGL_ES_API             #x00030002)
@@ -332,13 +347,6 @@
   
   
   (GLFWvkproc                     (_ptr o (_fun -> _void)))
-  (GLFWwindowposfun               (_ptr o (_fun _pointer _int _int -> _void)))
-  (GLFWwindowsizefun              (_ptr o (_fun _pointer _int _int -> _void)))
-  (GLFWwindowclosefun             (_ptr o (_fun _pointer -> _void)))
-  (GLFWwindowrefreshfun           (_ptr o (_fun _pointer -> _void)))
-  (GLFWwindowfocusfun             (_ptr o (_fun _pointer _int -> _void)))
-  (GLFWwindowiconifyfun           (_ptr o (_fun _pointer _int -> _void)))
-  (GLFWframebuffersizefun         (_ptr o (_fun _pointer _int _int -> _void)))
   )
 
 
@@ -356,18 +364,17 @@
    [blueBits _int]
    [refreshRate _int]))
 
-(define-cstruct _GLFWgammaramp   ;TODO: Quizas haya que corregir
+(define-cstruct _GLFWgammaramp
   ([red (_ptr o _ushort)]
    [green (_ptr o _ushort)]
    [blue (_ptr o _ushort)]
    [size _int]))
 
-
-
+;WINDOW
 (define-cstruct _GLFWimage
   ([width _int]
    [height _int]
-   [pixels (_ptr o _uint8)]))
+   [pixels (_ptr o _wchar)]))
 
 
 
@@ -451,14 +458,16 @@
   (glfwGetGammaRamp                   ((monitor : _pointer) -> _GLFWgammaramp-pointer))
   (glfwSetGammaRamp                   ((monitor : _pointer) _GLFWgammaramp-pointer -> _void))
 
+  ;WINDOW
   (glfwDefaultWindowHints             (-> _void))
   (glfwWindowHint                     ((hint : _int) (value : _int) -> _void))
-  (glfwCreateWindow                   ((width : _int) (height : _int) (title : _string/utf-8) (monitor : _pointer) (share : _pointer) -> _pointer)) ; returns GLFWwindow *
+  (glfwWindowHintString               ((hint : _int) (value : _string/utf-8) -> _void))
+  (glfwCreateWindow                   ((width : _int) (height : _int) (title : _string/utf-8) (monitor : _pointer) (share : _pointer) -> _pointer))
   (glfwDestroyWindow                  ((window : _pointer) -> _void))
   (glfwWindowShouldClose              ((window : _pointer) -> _int))
   (glfwSetWindowShouldClose           ((window : _pointer) (value : _int) -> _void))
   (glfwSetWindowTitle                 ((window : _pointer) (title : _string/utf-8) -> _void))
-  (glfwSetWindowIcon                  ((window : _pointer) (count : _int) (images : (_ptr o _GLFWimage)) -> _void))
+  (glfwSetWindowIcon                  ((window : _pointer) (count : _int) (images : _pointer) -> _void))
   (glfwGetWindowPos                   ((window : _pointer) (xpos : (_ptr o _int)) (ypos : (_ptr o _int)) -> _void -> (values xpos ypos)))
   (glfwSetWindowPos                   ((window : _pointer) (xpos : _int) (ypos : _int) -> _void))
   (glfwGetWindowSize                  ((window : _pointer) (width : (_ptr o _int)) (height : (_ptr o _int)) -> _void -> (values width height)))
@@ -467,6 +476,9 @@
   (glfwSetWindowSize                  ((window : _pointer) (width : _int) (height : _int) -> _void))
   (glfwGetFramebufferSize             ((window : _pointer) (width : (_ptr o _int)) (height : (_ptr o _int)) -> _void -> (values width height)))
   (glfwGetWindowFrameSize             ((window : _pointer) (left : (_ptr o _int)) (top : (_ptr o _int)) (right : (_ptr o _int)) (bottom : (_ptr o _int)) -> _void -> (values left top right bottom)))
+
+  ; Seguir con glfwGetWindowContentScale
+  
   (glfwIconifyWindow                  ((window : _pointer) -> _void))
   (glfwRestoreWindow                  ((window : _pointer) -> _void))
   (glfwMaximizeWindow                 ((window : _pointer) -> _void))
