@@ -28,8 +28,7 @@
 
   (define (create-window)
     (glfwInit)
-    (define window (glfwCreateWindow 400 300 "Main window" #f #f))
-    (glfwSetKeyCallback window (λ (a b c d e) (void))))
+    (glfwCreateWindow 400 300 "Main window" #f #f))
   (define (destroy-window window)
     (glfwDestroyWindow window)
     (glfwTerminate))
