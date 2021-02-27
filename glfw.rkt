@@ -11,12 +11,27 @@
 
   ;Context reference
   (GLFWglproc                     (_fun -> _void))
-  
+
+  ;Initialization, version and error reference
   (GLFW_TRUE                      1)
   (GLFW_FALSE                     0)
   (GLFW_JOYSTICK_HAT_BUTTONS      #x00050001)
   (GLFW_COCOA_CHDIR_RESOURCES     #x00051001)
   (GLFW_COCOA_MENUBAR             #x00051002)
+  (GLFWerrorfun                   (_fun _int _string/utf-8 -> _void))
+
+  (GLFW_NO_ERROR 0)
+  (GLFW_NOT_INITIALIZED           #x00010001)
+  (GLFW_NO_CURRENT_CONTEXT        #x00010002)
+  (GLFW_INVALID_ENUM              #x00010003)
+  (GLFW_INVALID_VALUE             #x00010004)
+  (GLFW_OUT_OF_MEMORY             #x00010005)
+  (GLFW_API_UNAVAILABLE           #x00010006)
+  (GLFW_VERSION_UNAVAILABLE       #x00010007)
+  (GLFW_PLATFORM_ERROR            #x00010008)
+  (GLFW_FORMAT_UNAVAILABLE        #x00010009)
+  (GLFW_NO_WINDOW_CONTEXT         #x0001000A)
+  
   
   (GLFW_RELEASE                   0)
   (GLFW_PRESS                     1)
@@ -176,16 +191,11 @@
   (GLFW_JOYSTICK_15               14)
   (GLFW_JOYSTICK_16               15)
   (GLFW_JOYSTICK_LAST             GLFW_JOYSTICK_16)
-  (GLFW_NOT_INITIALIZED           #x00010001)
-  (GLFW_NO_CURRENT_CONTEXT        #x00010002)
-  (GLFW_INVALID_ENUM              #x00010003)
-  (GLFW_INVALID_VALUE             #x00010004)
-  (GLFW_OUT_OF_MEMORY             #x00010005)
-  (GLFW_API_UNAVAILABLE           #x00010006)
-  (GLFW_VERSION_UNAVAILABLE       #x00010007)
-  (GLFW_PLATFORM_ERROR            #x00010008)
-  (GLFW_FORMAT_UNAVAILABLE        #x00010009)
-  (GLFW_NO_WINDOW_CONTEXT         #x0001000A)
+  
+  
+  
+  
+  
   (GLFW_FOCUSED                   #x00020001)
   (GLFW_ICONIFIED                 #x00020002)
   (GLFW_RESIZABLE                 #x00020003)
@@ -252,7 +262,7 @@
   (GLFW_DONT_CARE                 -1)
   
   
-  (GLFWerrorfun                   (_fun _int _string/utf-8 -> _void))
+  
   
   (GLFWvkproc                     (_ptr o (_fun -> _void)))
   (GLFWwindowposfun               (_ptr o (_fun _pointer _int _int -> _void)))
@@ -304,12 +314,16 @@
   (glfwExtensionSupported             ((extension : _string/utf-8) -> _int))
   (glfwGetProcAddress                 ((procname : _string/utf-8) -> GLFWglproc))
   
-  
+  ;Initialization, version and error reference
   (glfwInit                           (-> _int))
   (glfwTerminate                      (-> _void))
+  (glfwInitHint                       ((hint : _int) (value : _int) -> void))
   (glfwGetVersion                     ((major : (_ptr o _int)) (minor : (_ptr o _int)) (rev : (_ptr o _int)) -> _void -> (values major minor rev)))
   (glfwGetVersionString               (-> _string/utf-8))
+  (glfwGetError                       ((description : (_ptr o _string/utf-8)) -> (err-code : _int) -> (values err-code description)))
   (glfwSetErrorCallback               (GLFWerrorfun -> GLFWerrorfun))
+  
+  
   (glfwGetMonitors                    ((count : (_ptr o _int)) -> (_ptr o _pointer)))
   (glfwGetPrimaryMonitor              (-> _pointer))
   (glfwGetMonitorPos                  ((monitor : _pointer) (xpos : (_ptr o _int)) (ypos : (_ptr o _int)) -> _void -> (values xpos ypos)))
