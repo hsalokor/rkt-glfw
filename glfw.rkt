@@ -365,9 +365,9 @@
    [refreshRate _int]))
 
 (define-cstruct _GLFWgammaramp
-  ([red (_ptr o _ushort)]
-   [green (_ptr o _ushort)]
-   [blue (_ptr o _ushort)]
+  ([red (_ptr io _ushort)]
+   [green (_ptr io _ushort)]
+   [blue (_ptr io _ushort)]
    [size _int]))
 
 ;WINDOW
@@ -393,7 +393,7 @@
   ;INITIALIZATION, VERSION AND ERROR
   (glfwInit                           (-> _int))
   (glfwTerminate                      (-> _void))
-  (glfwInitHint                       ((hint : _int) (value : _int) -> void))
+  (glfwInitHint                       ((hint : _int) (value : _int) -> _void))
   (glfwGetVersion                     ((major : (_ptr o _int)) (minor : (_ptr o _int)) (rev : (_ptr o _int)) -> _void -> (values major minor rev)))
   (glfwGetVersionString               (-> _string/utf-8))
   (glfwGetError                       ((description : (_ptr o _string/utf-8)) -> (err-code : _int) -> (values err-code description)))
@@ -409,7 +409,7 @@
   (glfwGetMouseButton                 ((window : _pointer) (button : _int) -> _int))
   (glfwGetCursorPos                   ((window : _pointer) (xpos : (_ptr o _double)) (ypos : (_ptr o _double)) -> _void -> (values xpos ypos)))
   (glfwSetCursorPos                   ((window : _pointer) (xpos : _double) (ypos : _double) -> _void))
-  (glfwCreateCursor                   ((image : (_ptr o _GLFWimage)) (xhot : _int) (yhot : _int) -> _pointer))
+  (glfwCreateCursor                   ((image : _GLFWimage-pointer) (xhot : _int) (yhot : _int) -> _pointer))
   (glfwCreateStandardCursor           ((shape : _int) -> _pointer))
   (glfwDestroyCursor                  ((cursor : _pointer) -> _void))
   (glfwSetCursor                      ((window : _pointer) (cursor : _pointer) -> _void))
@@ -476,42 +476,40 @@
   (glfwSetWindowSize                  ((window : _pointer) (width : _int) (height : _int) -> _void))
   (glfwGetFramebufferSize             ((window : _pointer) (width : (_ptr o _int)) (height : (_ptr o _int)) -> _void -> (values width height)))
   (glfwGetWindowFrameSize             ((window : _pointer) (left : (_ptr o _int)) (top : (_ptr o _int)) (right : (_ptr o _int)) (bottom : (_ptr o _int)) -> _void -> (values left top right bottom)))
-
-  ; Seguir con glfwGetWindowContentScale
-  
+  (glfwGetWindowContentScale          ((window : _pointer) (xscale : (_ptr o _float)) (yscale : (_ptr o _float)) -> _void))
+  (glfwGetWindowOpacity               ((window : _pointer) -> _float))
+  (glfwSetWindowOpacity               ((window : _pointer) (opacity : _float) -> _void))
   (glfwIconifyWindow                  ((window : _pointer) -> _void))
   (glfwRestoreWindow                  ((window : _pointer) -> _void))
   (glfwMaximizeWindow                 ((window : _pointer) -> _void))
   (glfwShowWindow                     ((window : _pointer) -> _void))
   (glfwHideWindow                     ((window : _pointer) -> _void))
   (glfwFocusWindow                    ((window : _pointer) -> _void))
+  (glfwRequestWindowAttention         ((window : _pointer) -> _void))
   (glfwGetWindowMonitor               ((window : _pointer) -> _pointer))
   (glfwSetWindowMonitor               ((window : _pointer) (monitor : _pointer) (xpos : _int) (ypos : _int) (width : _int) (height : _int) (refreshRate : _int) -> _void))
   (glfwGetWindowAttrib                ((window : _pointer) (attrib : _int) -> _int))
+  (glfwSetWindowAttrib                ((window : _pointer) (attrib : _int) (value : _int) -> _void))
   (glfwSetWindowUserPointer           ((window : _pointer) (pointer : _pointer) -> _void))
   (glfwGetWindowUserPointer           ((window : _pointer) -> _pointer))
-  (glfwSetWindowPosCallback           ((window : _pointer) GLFWwindowposfun -> GLFWwindowposfun))
-  (glfwSetWindowSizeCallback          ((window : _pointer) GLFWwindowsizefun -> GLFWwindowsizefun))
-  (glfwSetWindowCloseCallback         ((window : _pointer) GLFWwindowclosefun -> GLFWwindowclosefun))
-  (glfwSetWindowRefreshCallback       ((window : _pointer) GLFWwindowrefreshfun -> GLFWwindowrefreshfun))
-  (glfwSetWindowFocusCallback         ((window : _pointer) GLFWwindowfocusfun -> GLFWwindowfocusfun))
-  (glfwSetWindowIconifyCallback       ((window : _pointer) GLFWwindowiconifyfun -> GLFWwindowiconifyfun))
-  (glfwSetFramebufferSizeCallback     ((window : _pointer) GLFWframebuffersizefun -> GLFWframebuffersizefun))
+  (glfwSetWindowPosCallback           ((window : _pointer) (callback : GLFWwindowposfun) -> GLFWwindowposfun))
+  (glfwSetWindowSizeCallback          ((window : _pointer) (callback : GLFWwindowsizefun) -> GLFWwindowsizefun))
+  (glfwSetWindowCloseCallback         ((window : _pointer) (callback : GLFWwindowclosefun) -> GLFWwindowclosefun))
+  (glfwSetWindowRefreshCallback       ((window : _pointer) (callback : GLFWwindowrefreshfun) -> GLFWwindowrefreshfun))
+  (glfwSetWindowFocusCallback         ((window : _pointer) (callback : GLFWwindowfocusfun) -> GLFWwindowfocusfun))
+  (glfwSetWindowIconifyCallback       ((window : _pointer) (callback : GLFWwindowiconifyfun) -> GLFWwindowiconifyfun))
+  (glfwSetWindowMaximizeCallback      ((window : _pointer) (callback : GLFWwindowmaximizefun) -> GLFWwindowmaximizefun))
+  (glfwSetFramebufferSizeCallback     ((window : _pointer) (callback : GLFWframebuffersizefun) -> GLFWframebuffersizefun))
+  (glfwSetWindowContentScaleCallback  ((window : _pointer) (callback : GLFWwindowcontentscalefun) -> GLFWwindowcontentscalefun))
   (glfwPollEvents                     (-> _void))
   (glfwWaitEvents                     (-> _void))
   (glfwWaitEventsTimeout              ((timeout : _double) -> _void))
   (glfwPostEmptyEvent                 (-> _void))
-  
-  
-  
-  
-  
-  
-  
-  
-   
   (glfwSwapBuffers                    ((window : _pointer) -> _void))
   
+  
+  
+
   
   (glfwVulkanSupported                (-> _int));
   (glfwGetRequiredInstanceExtensions  ((count : (_ptr o _uint32)) -> (_ptr o _string/utf-8)))
