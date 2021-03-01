@@ -7,8 +7,8 @@
 (define window (glfwCreateWindow 800 600 "Example window" #f #f))
 
 
-(define image (make-GLFWgammaramp 10 10 10 5))
-(GLFWgammaramp-red image)
+(define image (make-GLFWgammaramp '(2 10) '(4 11) '(5 12) 2))
+(ptr-ref (GLFWgammaramp-red image))
 
 
 (sleep 3)

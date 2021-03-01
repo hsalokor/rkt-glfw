@@ -1,8 +1,20 @@
 #lang racket/base
 
-(provide (all-defined-out))
+(provide (except-out (all-defined-out)
+                     racket->cblock
+                     racket->array
+                     make-GLFWgammaramp
+                     make-GLFWgammaramp-aux
+                     make-GLFWgamepadstate
+                     make-GLFWgamepadstate-aux
+                     make-GLFWimage
+                     make-GLFWimage-aux)
+         (rename-out [make-GLFWgammaramp-aux make-GLFWgammaramp]
+                     [make-GLFWgamepadstate-aux make-GLFWgamepadstate]
+                     [make-GLFWimage-aux make-GLFWimage]))
 
 (require ffi/unsafe ffi/unsafe/define syntax/parse/define)
+
 
 (define-simple-macro (defines (name:id value:expr) ...)
   (begin (define name value) ...))
@@ -387,10 +399,10 @@
 
 ;racket->cblock :: Converts a list or a vector to a cblock and
 ;                  returns the pointer to the first element
-(define (racket->cblock container)
+(define (racket->cblock container type)
   (cond
-    [(list? container) (list->cblock container)]
-    [(vector? container) (vector->cblock container)]
+    [(list? container) (list->cblock container type)]
+    [(vector? container) (vector->cblock container type)]
     [else (error 'racket->cblock "Expected list or vector.")]))
 
 ;racket->array :: Converts a list or a vector to an array
@@ -442,7 +454,7 @@
 
 ;Interface for the constructor of _GLFWimage
 (define (make-GLFWimage-aux width height pixels)
-  (make-GLFWimage width height (racket->cblock pixels)))
+  (make-GLFWimage width height (racket->cblock pixels _wchar)))
 
 
 ;-------------------------------------------------------------
@@ -580,7 +592,4 @@
   ;context
   (glfwSwapInterval                   ((interval : _int) -> _void))
   (glfwExtensionSupported             ((extension : _string/utf-8) -> _int))
-  (glfwGetProcAddress                 ((procname : _string/utf-8) -> GLFWglproc))
-  
-  ;vulkan support
-  )
+  (glfwGetProcAddress                 ((procname : _string/utf-8) -> GLFWglproc)))
