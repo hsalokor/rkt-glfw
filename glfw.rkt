@@ -9,7 +9,9 @@
 
 (defines
 
-  ;VALUES
+  ;-------------------------------------------------------------
+  ;-------------------------- VALUES ---------------------------
+  ;-------------------------------------------------------------
 
   ;initialization, version and error
   (GLFW_TRUE                      1)
@@ -383,6 +385,22 @@
 ;-------------------------- STRUCTS --------------------------
 ;-------------------------------------------------------------
 
+;racket->cblock :: Converts a list or a vector to a cblock and
+;                  returns the pointer to the first element
+(define (racket->cblock container)
+  (cond
+    [(list? container) (list->cblock container)]
+    [(vector? container) (vector->cblock container)]
+    [else (error 'racket->cblock "Expected list or vector.")]))
+
+;racket->array :: Converts a list or a vector to an array
+(define (racket->array container type)
+  (cond
+    [(list? container) (cast container (_array/list type (length container)))]
+    [(vector? container) (cast container (_array/vector type (vector-length container)))]
+    [else (error 'racket->array "Expected list or vector.")]))
+
+
 ;monitor
 (define-cstruct _GLFWvidmode
   ([width _int]
@@ -393,21 +411,38 @@
    [refreshRate _int]))
 
 (define-cstruct _GLFWgammaramp
-  ([red (_ptr io _ushort)]
-   [green (_ptr io _ushort)]
-   [blue (_ptr io _ushort)]
+  ([red _pointer]
+   [green _pointer]
+   [blue _pointer]
    [size _int]))
+
+;Interface for the constructor of _GLFWgammaramp
+(define (make-GLFWgammaramp-aux red green blue size)
+  (make-GLFWgammaramp (racket->cblock red _ushort)
+                      (racket->cblock green _ushort)
+                      (racket->cblock blue _ushort)
+                      size))
+  
 
 ;input
 (define-cstruct _GLFWgamepadstate
   ([buttons (_array _wchar 15)]
    [axes (_array _float 6)]))
 
+;Interface for the constructor of _GLFWgamepadstate
+(define (make-GLFWgamepadstate-aux buttons axes)
+  (make-GLFWgamepadstate (racket->array buttons _wchar)
+                         (racket->array axes _float)))
+
 ;window
 (define-cstruct _GLFWimage
   ([width _int]
    [height _int]
-   [pixels (_ptr o _wchar)]))
+   [pixels _pointer]))
+
+;Interface for the constructor of _GLFWimage
+(define (make-GLFWimage-aux width height pixels)
+  (make-GLFWimage width height (racket->cblock pixels)))
 
 
 ;-------------------------------------------------------------
