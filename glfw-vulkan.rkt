@@ -13,7 +13,7 @@
                      [make-GLFWgamepadstate-aux make-GLFWgamepadstate]
                      [make-GLFWimage-aux make-GLFWimage]))
 
-(require ffi/unsafe ffi/unsafe/define syntax/parse/define)
+(require ffi/unsafe ffi/unsafe/define syntax/parse/define vulkan/unsafe)
 
 
 (define-simple-macro (defines (name:id value:expr) ...)
@@ -358,6 +358,9 @@
   
   ;context
   (GLFWglproc                     (_fun -> _void))
+  
+  ;vulkan support
+  (GLFWvkproc                     (_fun -> _void))
 
   ;initialization, version and error
   (GLFWerrorfun                   (_fun _int _string/utf-8 -> _void))
@@ -589,4 +592,9 @@
   ;context
   (glfwSwapInterval                   ((interval : _int) -> _void))
   (glfwExtensionSupported             ((extension : _string/utf-8) -> _int))
-  (glfwGetProcAddress                 ((procname : _string/utf-8) -> GLFWglproc)))
+  (glfwGetProcAddress                 ((procname : _string/utf-8) -> GLFWglproc))
+
+  ;vulkan support
+  (glfwGetInstanceProcAddress                   ((instance : _VkInstance) (procname : _string/utf-8) -> GLFWvkproc))
+  (glfwGetPhysicalDevicePresentationSupport     ((instance : _VkInstance) (device : _VkPhysicalDevice) (queuefamily : _uint32) -> _int))
+  (glfwCreateWindowSurface                      ((instance : _VkInstance) (window : _pointer) (allocator : _VkAllocationCallbacks-pointer) (surface : (_ptr o _VkSurfaceKHR)) -> (result : _VkResult) -> (values result surface))))
