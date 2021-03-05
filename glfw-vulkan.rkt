@@ -595,6 +595,8 @@
   (glfwGetProcAddress                 ((procname : _string/utf-8) -> GLFWglproc))
 
   ;vulkan support
+  (glfwVulkanSupported                          (-> _int))
+  (glfwGetRequiredInstanceExtensions            ((count : (_ptr o _uint32)) -> (res : _pointer) -> (cblock->list res _string/utf-8 count)))
   (glfwGetInstanceProcAddress                   ((instance : _VkInstance) (procname : _string/utf-8) -> GLFWvkproc))
   (glfwGetPhysicalDevicePresentationSupport     ((instance : _VkInstance) (device : _VkPhysicalDevice) (queuefamily : _uint32) -> _int))
   (glfwCreateWindowSurface                      ((instance : _VkInstance) (window : _pointer) (allocator : _VkAllocationCallbacks-pointer) (surface : (_ptr o _VkSurfaceKHR)) -> (result : _VkResult) -> (values result surface))))
