@@ -1,7 +1,7 @@
 #! /usr/bin/env racket
 #lang racket/base
 
-(require "glfw.rkt")
+(require "../main.rkt")
 
 (glfwInit)
 (define window (glfwCreateWindow 800 600 "Example window" #f #f))

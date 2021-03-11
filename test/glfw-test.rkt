@@ -1,7 +1,7 @@
 #lang racket/base
 
 (module+ test
-  (require "glfw.rkt"
+  (require "../main.rkt"
            disposable
            fixture
            racket/function
