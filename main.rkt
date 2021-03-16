@@ -1,18 +1,46 @@
 #lang racket/base
 
-(provide (all-defined-out))
+(provide (except-out (all-defined-out)
+                     racket->cblock
+                     racket->array
+                     make-GLFWgammaramp
+                     make-GLFWgammaramp-aux
+                     make-GLFWgamepadstate
+                     make-GLFWgamepadstate-aux
+                     make-GLFWimage
+                     make-GLFWimage-aux)
+         (rename-out [make-GLFWgammaramp-aux make-GLFWgammaramp]
+                     [make-GLFWgamepadstate-aux make-GLFWgamepadstate]
+                     [make-GLFWimage-aux make-GLFWimage]))
 
 (require ffi/unsafe ffi/unsafe/define syntax/parse/define)
+
 
 (define-simple-macro (defines (name:id value:expr) ...)
   (begin (define name value) ...))
 
 (defines
+
+  ;-------------------------------------------------------------
+  ;-------------------------- VALUES ---------------------------
+  ;-------------------------------------------------------------
+
+  ;initialization, version and error
   (GLFW_TRUE                      1)
   (GLFW_FALSE                     0)
-  (GLFW_RELEASE                   0)
-  (GLFW_PRESS                     1)
-  (GLFW_REPEAT                    2)
+
+  ;joystick hat states
+  (GLFW_HAT_CENTERED                0)
+  (GLFW_HAT_UP                      1)
+  (GLFW_HAT_RIGHT                   2)
+  (GLFW_HAT_DOWN                    4)
+  (GLFW_HAT_LEFT                    8)
+  (GLFW_HAT_RIGHT_UP                (bitwise-ior GLFW_HAT_RIGHT GLFW_HAT_UP))
+  (GLFW_HAT_RIGHT_DOWN              (bitwise-ior GLFW_HAT_RIGHT GLFW_HAT_DOWN))
+  (GLFW_HAT_LEFT_UP                 (bitwise-ior GLFW_HAT_LEFT GLFW_HAT_UP))
+  (GLFW_HAT_LEFT_DOWN               (bitwise-ior GLFW_HAT_LEFT GLFW_HAT_DOWN))
+
+  ;keyboard keys
   (GLFW_KEY_UNKNOWN               -1)
   (GLFW_KEY_SPACE                 32)
   (GLFW_KEY_APOSTROPHE            39)
@@ -135,10 +163,16 @@
   (GLFW_KEY_RIGHT_SUPER           347)
   (GLFW_KEY_MENU                  348)
   (GLFW_KEY_LAST                  GLFW_KEY_MENU)
+  
+  ;modifier key flags
   (GLFW_MOD_SHIFT                 #x0001)
   (GLFW_MOD_CONTROL               #x0002)
   (GLFW_MOD_ALT                   #x0004)
   (GLFW_MOD_SUPER                 #x0008)
+  (GLFW_MOD_CAPS_LOCK             #x0010)
+  (GLFW_MOD_NUM_LOCK              #x0020)
+  
+  ;mouse buttons
   (GLFW_MOUSE_BUTTON_1            0)
   (GLFW_MOUSE_BUTTON_2            1)
   (GLFW_MOUSE_BUTTON_3            2)
@@ -151,6 +185,8 @@
   (GLFW_MOUSE_BUTTON_LEFT         GLFW_MOUSE_BUTTON_1)
   (GLFW_MOUSE_BUTTON_RIGHT        GLFW_MOUSE_BUTTON_2)
   (GLFW_MOUSE_BUTTON_MIDDLE       GLFW_MOUSE_BUTTON_3)
+  
+  ;joysticks
   (GLFW_JOYSTICK_1                0)
   (GLFW_JOYSTICK_2                1)
   (GLFW_JOYSTICK_3                2)
@@ -168,6 +204,40 @@
   (GLFW_JOYSTICK_15               14)
   (GLFW_JOYSTICK_16               15)
   (GLFW_JOYSTICK_LAST             GLFW_JOYSTICK_16)
+  
+  ;gamepad buttons
+  (GLFW_GAMEPAD_BUTTON_A          0)
+  (GLFW_GAMEPAD_BUTTON_B          1)
+  (GLFW_GAMEPAD_BUTTON_X          2)
+  (GLFW_GAMEPAD_BUTTON_Y          3)
+  (GLFW_GAMEPAD_BUTTON_LEFT_BUMPER 4)
+  (GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER 5)            
+  (GLFW_GAMEPAD_BUTTON_BACK         6)
+  (GLFW_GAMEPAD_BUTTON_START        7)
+  (GLFW_GAMEPAD_BUTTON_GUIDE        8)
+  (GLFW_GAMEPAD_BUTTON_LEFT_THUMB   9)
+  (GLFW_GAMEPAD_BUTTON_RIGHT_THUMB  10)
+  (GLFW_GAMEPAD_BUTTON_DPAD_UP      11)
+  (GLFW_GAMEPAD_BUTTON_DPAD_RIGHT   12)
+  (GLFW_GAMEPAD_BUTTON_DPAD_DOWN    13)
+  (GLFW_GAMEPAD_BUTTON_DPAD_LEFT    14)
+  (GLFW_GAMEPAD_BUTTON_LAST         GLFW_GAMEPAD_BUTTON_DPAD_LEFT)
+  (GLFW_GAMEPAD_BUTTON_CROSS        GLFW_GAMEPAD_BUTTON_A)
+  (GLFW_GAMEPAD_BUTTON_CIRCLE       GLFW_GAMEPAD_BUTTON_B)
+  (GLFW_GAMEPAD_BUTTON_SQUARE       GLFW_GAMEPAD_BUTTON_X)
+  (GLFW_GAMEPAD_BUTTON_TRIANGLE     GLFW_GAMEPAD_BUTTON_Y)
+  
+  ;gamepad axes
+  (GLFW_GAMEPAD_AXIS_LEFT_X       0)
+  (GLFW_GAMEPAD_AXIS_LEFT_Y       1)
+  (GLFW_GAMEPAD_AXIS_RIGHT_X      2)
+  (GLFW_GAMEPAD_AXIS_RIGHT_Y      3)
+  (GLFW_GAMEPAD_AXIS_LEFT_TRIGGER 4)
+  (GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER 5)                       
+  (GLFW_GAMEPAD_AXIS_LAST         GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER)
+  
+  ;error codes
+  (GLFW_NO_ERROR 0)
   (GLFW_NOT_INITIALIZED           #x00010001)
   (GLFW_NO_CURRENT_CONTEXT        #x00010002)
   (GLFW_INVALID_ENUM              #x00010003)
@@ -178,6 +248,8 @@
   (GLFW_PLATFORM_ERROR            #x00010008)
   (GLFW_FORMAT_UNAVAILABLE        #x00010009)
   (GLFW_NO_WINDOW_CONTEXT         #x0001000A)
+  
+  ;window
   (GLFW_FOCUSED                   #x00020001)
   (GLFW_ICONIFIED                 #x00020002)
   (GLFW_RESIZABLE                 #x00020003)
@@ -186,6 +258,10 @@
   (GLFW_AUTO_ICONIFY              #x00020006)
   (GLFW_FLOATING                  #x00020007)
   (GLFW_MAXIMIZED                 #x00020008)
+  (GLFW_CENTER_CURSOR             #x00020009)
+  (GLFW_TRANSPARENT_FRAMEBUFFER   #x0002000A)
+  (GLFW_HOVERED                   #x0002000B)
+  (GLFW_FOCUS_ON_SHOW             #x0002000C)
   (GLFW_RED_BITS                  #x00021001)
   (GLFW_GREEN_BITS                #x00021002)
   (GLFW_BLUE_BITS                 #x00021003)
@@ -213,6 +289,14 @@
   (GLFW_CONTEXT_RELEASE_BEHAVIOR  #x00022009)
   (GLFW_CONTEXT_NO_ERROR          #x0002200A)
   (GLFW_CONTEXT_CREATION_API      #x0002200B)
+  (GLFW_SCALE_TO_MONITOR          #x0002200C)
+  (GLFW_COCOA_RETINA_FRAMEBUFFER  #x00023001)
+  (GLFW_COCOA_FRAME_NAME          #x00023002)
+  (GLFW_COCOA_GRAPHICS_SWITCHING  #x00023003)
+  (GLFW_X11_CLASS_NAME            #x00024001)
+  (GLFW_X11_INSTANCE_NAME         #x00024002)
+
+  ;glfw
   (GLFW_NO_API                    0)
   (GLFW_OPENGL_API                #x00030001)
   (GLFW_OPENGL_ES_API             #x00030002)
@@ -225,6 +309,8 @@
   (GLFW_CURSOR                    #x00033001)
   (GLFW_STICKY_KEYS               #x00033002)
   (GLFW_STICKY_MOUSE_BUTTONS      #x00033003)
+  (GLFW_LOCK_KEY_MODS             #x00033004)
+  (GLFW_RAW_MOUSE_MOTION          #x00033005)
   (GLFW_CURSOR_NORMAL             #x00034001)
   (GLFW_CURSOR_HIDDEN             #x00034002)
   (GLFW_CURSOR_DISABLED           #x00034003)
@@ -233,36 +319,98 @@
   (GLFW_RELEASE_BEHAVIOR_NONE     #x00035002)
   (GLFW_NATIVE_CONTEXT_API        #x00036001)
   (GLFW_EGL_CONTEXT_API           #x00036002)
+  (GLFW_OSMESA_CONTEXT_API        #x00036003)
+
+  ;standard cursor shapes
   (GLFW_ARROW_CURSOR              #x00036001)
   (GLFW_IBEAM_CURSOR              #x00036002)
   (GLFW_CROSSHAIR_CURSOR          #x00036003)
   (GLFW_HAND_CURSOR               #x00036004)
   (GLFW_HRESIZE_CURSOR            #x00036005)
   (GLFW_VRESIZE_CURSOR            #x00036006)
+  
+  ;glfw
   (GLFW_CONNECTED                 #x00040001)
   (GLFW_DISCONNECTED              #x00040002)
-  (GLFW_DONT_CARE                 -1)
-  (GLFWglproc                     (_ptr o (_fun -> _void)))
-  (GLFWvkproc                     (_ptr o (_fun -> _void)))
-  (GLFWerrorfun                   (_ptr o (_fun _int _string/utf-8 -> _void)))
-  (GLFWwindowposfun               (_ptr o (_fun _pointer _int _int -> _void)))
-  (GLFWwindowsizefun              (_ptr o (_fun _pointer _int _int -> _void)))
-  (GLFWwindowclosefun             (_ptr o (_fun _pointer -> _void)))
-  (GLFWwindowrefreshfun           (_ptr o (_fun _pointer -> _void)))
-  (GLFWwindowfocusfun             (_ptr o (_fun _pointer _int -> _void)))
-  (GLFWwindowiconifyfun           (_ptr o (_fun _pointer _int -> _void)))
-  (GLFWframebuffersizefun         (_ptr o (_fun _pointer _int _int -> _void)))
-  (GLFWmousebuttonfun             (_ptr o (_fun _pointer _int _int _int -> _void)))
-  (GLFWcursorposfun               (_ptr o (_fun _pointer _double _double -> _void)))
-  (GLFWcursorenterfun             (_ptr o (_fun _pointer _int -> _void)))
-  (GLFWscrollfun                  (_ptr o (_fun _pointer _double _double -> _void)))
-  (GLFWkeyfun                     (_ptr o (_fun _pointer _int _int _int _int -> _void)))
-  (GLFWcharfun                    (_ptr o (_fun _pointer _uint -> _void)))
-  (GLFWcharmodsfun                (_ptr o (_fun _pointer _uint _int -> _void)))
-  (GLFWdropfun                    (_ptr o (_fun _pointer _int (_ptr o _string/utf-8) -> _void)))
-  (GLFWmonitorfun                 (_ptr o (_fun _pointer _int -> _void)))
-  (GLFWjoystickfun                (_ptr o (_fun _int _int -> _void))))
 
+  ;initialization, version and error
+  (GLFW_JOYSTICK_HAT_BUTTONS      #x00050001)
+  (GLFW_COCOA_CHDIR_RESOURCES     #x00051001)
+  (GLFW_COCOA_MENUBAR             #x00051002)
+
+  ;glfw
+  (GLFW_DONT_CARE                 -1)
+
+  ;initialization, version and error
+  (GLFW_VERSION_MAJOR             3)
+  (GLFW_VERSION_MINOR             3)
+  (GLFW_VERSION_REVISION          3)
+
+  ;input
+  (GLFW_RELEASE                   0)
+  (GLFW_PRESS                     1)
+  (GLFW_REPEAT                    2)
+
+
+  ;-------------------------------------------------------------
+  ;---------------------- FUNCTION TYPES -----------------------
+  ;-------------------------------------------------------------
+  
+  ;context
+  (GLFWglproc                     (_fun -> _void))
+
+  ;initialization, version and error
+  (GLFWerrorfun                   (_fun _int _string/utf-8 -> _void))
+
+  ;window
+  (GLFWwindowposfun               (_fun _pointer _int _int -> _void))
+  (GLFWwindowsizefun              (_fun _pointer _int _int -> _void))
+  (GLFWwindowclosefun             (_fun _pointer -> _void))
+  (GLFWwindowrefreshfun           (_fun _pointer -> _void))
+  (GLFWwindowfocusfun             (_fun _pointer _int -> _void))
+  (GLFWwindowiconifyfun           (_fun _pointer _int -> _void))
+  (GLFWwindowmaximizefun          (_fun _pointer _int -> _void))
+  (GLFWframebuffersizefun         (_fun _pointer _int _int -> _void))
+  (GLFWwindowcontentscalefun      (_fun _pointer _float _float -> _void))
+
+  ;input
+  (GLFWmousebuttonfun             (_fun _pointer _int _int _int -> _void))
+  (GLFWcursorposfun               (_fun _pointer _double _double -> _void))
+  (GLFWcursorenterfun             (_fun _pointer _int -> _void))
+  (GLFWscrollfun                  (_fun _pointer _double _double -> _void))
+  (GLFWkeyfun                     (_fun _pointer _int _int _int _int -> _void))
+  (GLFWcharfun                    (_fun _pointer _uint -> _void))
+  (GLFWcharmodsfun                (_fun _pointer _uint _int -> _void))
+  (GLFWdropfun                    (_fun _pointer _int _pointer -> _void))
+  
+  ;monitor
+  (GLFWmonitorfun                 (_fun _pointer _int -> _void))
+  
+  ;input
+  (GLFWjoystickfun                (_fun _int _int -> _void)))
+
+
+;-------------------------------------------------------------
+;-------------------------- STRUCTS --------------------------
+;-------------------------------------------------------------
+
+;racket->cblock :: Converts a list or a vector to a cblock and
+;                  returns the pointer to the first element
+(define (racket->cblock container type)
+  (cond
+    [(list? container) (list->cblock container type)]
+    [(vector? container) (vector->cblock container type)]
+    [else (error 'racket->cblock "Expected list or vector.")]))
+
+;racket->array :: Converts a list or a vector to an array
+(define (racket->array container type)
+  (cond
+    [(list? container) (cast container (_array/list type (length container)))]
+    [(vector? container) (cast container (_array/vector type (vector-length container)))]
+    [else (error 'racket->array "Expected list or vector.")]))
+
+
+;monitor
 (define-cstruct _GLFWvidmode
   ([width _int]
    [height _int]
@@ -272,44 +420,85 @@
    [refreshRate _int]))
 
 (define-cstruct _GLFWgammaramp
-  ([red (_ptr o _ushort)]
-   [green (_ptr o _ushort)]
-   [blue (_ptr o _ushort)]
+  ([red _pointer]
+   [green _pointer]
+   [blue _pointer]
    [size _int]))
 
+;Interface for the constructor of _GLFWgammaramp
+(define (make-GLFWgammaramp-aux red green blue size)
+  (make-GLFWgammaramp (racket->cblock red _ushort)
+                      (racket->cblock green _ushort)
+                      (racket->cblock blue _ushort)
+                      size))
+  
+
+;input
+(define-cstruct _GLFWgamepadstate
+  ([buttons (_array _wchar 15)]
+   [axes (_array _float 6)]))
+
+;Interface for the constructor of _GLFWgamepadstate
+(define (make-GLFWgamepadstate-aux buttons axes)
+  (make-GLFWgamepadstate (racket->array buttons _wchar)
+                         (racket->array axes _float)))
+
+;window
 (define-cstruct _GLFWimage
   ([width _int]
    [height _int]
-   [pixels (_ptr o _uint8)]))
+   [pixels _pointer]))
+
+;Interface for the constructor of _GLFWimage
+(define (make-GLFWimage-aux width height pixels)
+  (make-GLFWimage width height (racket->cblock pixels _wchar)))
+
+
+;-------------------------------------------------------------
+;------------------------- FUNCTIONS -------------------------
+;-------------------------------------------------------------
 
 (define-simple-macro (define-ffi-functions lib:expr (name:id (ctype:expr ...)) ...)
   (begin (define-ffi-definer lib-definer lib) (lib-definer name (_fun ctype ...)) ...))
 
-(define-ffi-functions (ffi-lib "libglfw")
+(define-ffi-functions (ffi-lib "glfw3")
+
+  ;initialization, version and error
   (glfwInit                           (-> _int))
   (glfwTerminate                      (-> _void))
+  (glfwInitHint                       ((hint : _int) (value : _int) -> _void))
   (glfwGetVersion                     ((major : (_ptr o _int)) (minor : (_ptr o _int)) (rev : (_ptr o _int)) -> _void -> (values major minor rev)))
   (glfwGetVersionString               (-> _string/utf-8))
+  (glfwGetError                       ((description : (_ptr o _string/utf-8)) -> (err-code : _int) -> (values err-code description)))
   (glfwSetErrorCallback               (GLFWerrorfun -> GLFWerrorfun))
-  (glfwGetMonitors                    ((count : (_ptr o _int)) -> (_ptr o _pointer)))
+
+  ;monitor
+  (glfwGetMonitors                    ((count : (_ptr o _int)) -> (monitors : _pointer) -> (values monitors count)))
   (glfwGetPrimaryMonitor              (-> _pointer))
   (glfwGetMonitorPos                  ((monitor : _pointer) (xpos : (_ptr o _int)) (ypos : (_ptr o _int)) -> _void -> (values xpos ypos)))
+  (glfwGetMonitorWorkarea             ((monitor : _pointer) (xpos : (_ptr o _int)) (ypos : (_ptr o _int)) (width : (_ptr o _int)) (height : (_ptr o _int)) -> _void -> (values xpos ypos width height)))
   (glfwGetMonitorPhysicalSize         ((monitor : _pointer) (widthMM : (_ptr o _int)) (heightMM : (_ptr o _int)) -> _void -> (values widthMM heightMM)))
+  (glfwGetMonitorContentScale         ((monitor : _pointer) (xscale : (_ptr o _float)) (yscale : (_ptr o _float)) -> _void -> (values xscale yscale)))
   (glfwGetMonitorName                 ((monitor : _pointer) -> _string/utf-8))
-  (glfwSetMonitorCallback             (GLFWmonitorfun -> GLFWmonitorfun))
-  (glfwGetVideoModes                  ((monitor : _pointer) (count : (_ptr o _int)) -> (_ptr o _GLFWvidmode)))
-  (glfwGetVideoMode                   ((monitor : _pointer) -> (_ptr o _GLFWvidmode)))
+  (glfwSetMonitorUserPointer          ((monitor : _pointer) -> (pointer : _pointer) -> _void))
+  (glfwGetMonitorUserPointer          ((monitor : _pointer) -> _pointer))
+  (glfwSetMonitorCallback             ((callback : GLFWmonitorfun) -> GLFWmonitorfun))
+  (glfwGetVideoModes                  ((monitor : _pointer) (count : (_ptr o _int)) -> (modes : _GLFWvidmode-pointer) -> (values modes count)))
+  (glfwGetVideoMode                   ((monitor : _pointer) -> _GLFWvidmode-pointer))
   (glfwSetGamma                       ((monitor : _pointer) (gamma : _float) -> _void))
-  (glfwGetGammaRamp                   ((monitor : _pointer) -> (_ptr o _GLFWgammaramp)))
-  (glfwSetGammaRamp                   ((monitor : _pointer) -> (_ptr o _GLFWgammaramp)))
+  (glfwGetGammaRamp                   ((monitor : _pointer) -> _GLFWgammaramp-pointer))
+  (glfwSetGammaRamp                   ((monitor : _pointer) _GLFWgammaramp-pointer -> _void))
+
+  ;window
   (glfwDefaultWindowHints             (-> _void))
   (glfwWindowHint                     ((hint : _int) (value : _int) -> _void))
-  (glfwCreateWindow                   ((width : _int) (height : _int) (title : _string/utf-8) (monitor : _pointer) (share : _pointer) -> _pointer)) ; returns GLFWwindow *
+  (glfwWindowHintString               ((hint : _int) (value : _string/utf-8) -> _void))
+  (glfwCreateWindow                   ((width : _int) (height : _int) (title : _string/utf-8) (monitor : _pointer) (share : _pointer) -> _pointer))
   (glfwDestroyWindow                  ((window : _pointer) -> _void))
   (glfwWindowShouldClose              ((window : _pointer) -> _int))
   (glfwSetWindowShouldClose           ((window : _pointer) (value : _int) -> _void))
   (glfwSetWindowTitle                 ((window : _pointer) (title : _string/utf-8) -> _void))
-  (glfwSetWindowIcon                  ((window : _pointer) (count : _int) (images : (_ptr o _GLFWimage)) -> _void))
+  (glfwSetWindowIcon                  ((window : _pointer) (count : _int) (images : _pointer) -> _void))
   (glfwGetWindowPos                   ((window : _pointer) (xpos : (_ptr o _int)) (ypos : (_ptr o _int)) -> _void -> (values xpos ypos)))
   (glfwSetWindowPos                   ((window : _pointer) (xpos : _int) (ypos : _int) -> _void))
   (glfwGetWindowSize                  ((window : _pointer) (width : (_ptr o _int)) (height : (_ptr o _int)) -> _void -> (values width height)))
@@ -318,68 +507,86 @@
   (glfwSetWindowSize                  ((window : _pointer) (width : _int) (height : _int) -> _void))
   (glfwGetFramebufferSize             ((window : _pointer) (width : (_ptr o _int)) (height : (_ptr o _int)) -> _void -> (values width height)))
   (glfwGetWindowFrameSize             ((window : _pointer) (left : (_ptr o _int)) (top : (_ptr o _int)) (right : (_ptr o _int)) (bottom : (_ptr o _int)) -> _void -> (values left top right bottom)))
+  (glfwGetWindowContentScale          ((window : _pointer) (xscale : (_ptr o _float)) (yscale : (_ptr o _float)) -> _void))
+  (glfwGetWindowOpacity               ((window : _pointer) -> _float))
+  (glfwSetWindowOpacity               ((window : _pointer) (opacity : _float) -> _void))
   (glfwIconifyWindow                  ((window : _pointer) -> _void))
   (glfwRestoreWindow                  ((window : _pointer) -> _void))
   (glfwMaximizeWindow                 ((window : _pointer) -> _void))
   (glfwShowWindow                     ((window : _pointer) -> _void))
   (glfwHideWindow                     ((window : _pointer) -> _void))
   (glfwFocusWindow                    ((window : _pointer) -> _void))
+  (glfwRequestWindowAttention         ((window : _pointer) -> _void))
   (glfwGetWindowMonitor               ((window : _pointer) -> _pointer))
   (glfwSetWindowMonitor               ((window : _pointer) (monitor : _pointer) (xpos : _int) (ypos : _int) (width : _int) (height : _int) (refreshRate : _int) -> _void))
   (glfwGetWindowAttrib                ((window : _pointer) (attrib : _int) -> _int))
+  (glfwSetWindowAttrib                ((window : _pointer) (attrib : _int) (value : _int) -> _void))
   (glfwSetWindowUserPointer           ((window : _pointer) (pointer : _pointer) -> _void))
   (glfwGetWindowUserPointer           ((window : _pointer) -> _pointer))
-  (glfwSetWindowPosCallback           ((window : _pointer) GLFWwindowposfun -> GLFWwindowposfun))
-  (glfwSetWindowSizeCallback          ((window : _pointer) GLFWwindowsizefun -> GLFWwindowsizefun))
-  (glfwSetWindowCloseCallback         ((window : _pointer) GLFWwindowclosefun -> GLFWwindowclosefun))
-  (glfwSetWindowRefreshCallback       ((window : _pointer) GLFWwindowrefreshfun -> GLFWwindowrefreshfun))
-  (glfwSetWindowFocusCallback         ((window : _pointer) GLFWwindowfocusfun -> GLFWwindowfocusfun))
-  (glfwSetWindowIconifyCallback       ((window : _pointer) GLFWwindowiconifyfun -> GLFWwindowiconifyfun))
-  (glfwSetFramebufferSizeCallback     ((window : _pointer) GLFWframebuffersizefun -> GLFWframebuffersizefun))
+  (glfwSetWindowPosCallback           ((window : _pointer) (callback : GLFWwindowposfun) -> GLFWwindowposfun))
+  (glfwSetWindowSizeCallback          ((window : _pointer) (callback : GLFWwindowsizefun) -> GLFWwindowsizefun))
+  (glfwSetWindowCloseCallback         ((window : _pointer) (callback : GLFWwindowclosefun) -> GLFWwindowclosefun))
+  (glfwSetWindowRefreshCallback       ((window : _pointer) (callback : GLFWwindowrefreshfun) -> GLFWwindowrefreshfun))
+  (glfwSetWindowFocusCallback         ((window : _pointer) (callback : GLFWwindowfocusfun) -> GLFWwindowfocusfun))
+  (glfwSetWindowIconifyCallback       ((window : _pointer) (callback : GLFWwindowiconifyfun) -> GLFWwindowiconifyfun))
+  (glfwSetWindowMaximizeCallback      ((window : _pointer) (callback : GLFWwindowmaximizefun) -> GLFWwindowmaximizefun))
+  (glfwSetFramebufferSizeCallback     ((window : _pointer) (callback : GLFWframebuffersizefun) -> GLFWframebuffersizefun))
+  (glfwSetWindowContentScaleCallback  ((window : _pointer) (callback : GLFWwindowcontentscalefun) -> GLFWwindowcontentscalefun))
   (glfwPollEvents                     (-> _void))
   (glfwWaitEvents                     (-> _void))
   (glfwWaitEventsTimeout              ((timeout : _double) -> _void))
   (glfwPostEmptyEvent                 (-> _void))
+
+  ;input
   (glfwGetInputMode                   ((window : _pointer) (mode : _int) -> _int))
   (glfwSetInputMode                   ((window : _pointer) (mode : _int) (value : _int) -> _void))
+  (glfwRawMouseMotionSupported        (-> _int))
   (glfwGetKeyName                     ((key : _int) (scancode : _int) -> _string/utf-8))
+  (glfwGetKeyScancode                 ((key : _int) -> _int))
   (glfwGetKey                         ((window : _pointer) (key : _int) -> _int))
   (glfwGetMouseButton                 ((window : _pointer) (button : _int) -> _int))
   (glfwGetCursorPos                   ((window : _pointer) (xpos : (_ptr o _double)) (ypos : (_ptr o _double)) -> _void -> (values xpos ypos)))
   (glfwSetCursorPos                   ((window : _pointer) (xpos : _double) (ypos : _double) -> _void))
-  (glfwCreateCursor                   ((image : (_ptr o _GLFWimage)) (xhot : _int) (yhot : _int) -> _pointer))  ;; Return cursor ptr
-  (glfwCreateStandardCursor           ((shape : _int) -> _pointer))  ;; Returns cursor ptr
+  (glfwCreateCursor                   ((image : _GLFWimage-pointer) (xhot : _int) (yhot : _int) -> _pointer))
+  (glfwCreateStandardCursor           ((shape : _int) -> _pointer))
   (glfwDestroyCursor                  ((cursor : _pointer) -> _void))
   (glfwSetCursor                      ((window : _pointer) (cursor : _pointer) -> _void))
-  (glfwSetKeyCallback                 ((window : _pointer) GLFWkeyfun -> GLFWkeyfun))
-  (glfwSetCharCallback                ((window : _pointer) GLFWcharfun -> GLFWcharfun))
-  (glfwSetCharModsCallback            ((window : _pointer) GLFWcharmodsfun -> GLFWcharmodsfun))
-  (glfwSetMouseButtonCallback         ((window : _pointer) GLFWmousebuttonfun -> GLFWmousebuttonfun));
-  (glfwSetCursorPosCallback           ((window : _pointer) GLFWcursorposfun -> GLFWcursorposfun))
-  (glfwSetCursorEnterCallback         ((window : _pointer) GLFWcursorenterfun -> GLFWcursorenterfun))
-  (glfwSetScrollCallback              ((window : _pointer) GLFWscrollfun -> GLFWscrollfun))
-  (glfwSetDropCallback                ((window : _pointer) GLFWdropfun -> GLFWdropfun));
-  (glfwJoystickPresent                ((joy : _int) -> _int))
-  (glfwGetJoystickAxes                ((joy : _int) (count : (_ptr o _int)) -> (_ptr o _float)))
-  (glfwGetJoystickButtons             ((joy : _int) (count : (_ptr o _int)) -> (_ptr o _uint8)))  ; Returns const unsigned char*
-  (glfwGetJoystickName                ((joy : _int) -> _string/utf-8))
-  (glfwSetJoystickCallback            (GLFWjoystickfun -> GLFWjoystickfun))
+  (glfwSetKeyCallback                 ((window : _pointer) (callback : GLFWkeyfun) -> GLFWkeyfun))
+  (glfwSetCharCallback                ((window : _pointer) (callback : GLFWcharfun) -> GLFWcharfun))
+  (glfwSetCharModsCallback            ((window : _pointer) (callback : GLFWcharmodsfun) -> GLFWcharmodsfun))
+  (glfwSetMouseButtonCallback         ((window : _pointer) (callback : GLFWmousebuttonfun) -> GLFWmousebuttonfun))
+  (glfwSetCursorPosCallback           ((window : _pointer) (callback : GLFWcursorposfun) -> GLFWcursorposfun))
+  (glfwSetCursorEnterCallback         ((window : _pointer) (callback : GLFWcursorenterfun) -> GLFWcursorenterfun))
+  (glfwSetScrollCallback              ((window : _pointer) (callback : GLFWscrollfun) -> GLFWscrollfun))
+  (glfwSetDropCallback                ((window : _pointer) (callback : GLFWdropfun) -> GLFWdropfun))
+  (glfwJoystickPresent                ((jid : _int) -> _int))
+  (glfwGetJoystickAxes                ((jid : _int) (count : (_ptr o _int)) -> (axis : _pointer) -> (values axis count)))
+  (glfwGetJoystickButtons             ((jid : _int) (count : (_ptr o _int)) -> (buttons : _pointer) -> (values buttons count)))
+  (glfwGetJoystickHats                ((jid : _int) (count : (_ptr o _int)) -> (hats : _pointer) -> (values hats count)))
+  (glfwGetJoystickName                ((jid : _int) -> _string/utf-8))
+  (glfwGetJoystickGUID                ((jid : _int) -> _string/utf-8))
+  (glfwSetJoystickUserPointer         ((jid : _int) (pointer : _pointer) -> _void))
+  (glfwGetJoystickUserPointer         ((jid : _int) -> _pointer))
+  (glfwJoystickIsGamepad              ((jid : _int) -> _int))
+  (glfwSetJoystickCallback            ((callback : GLFWjoystickfun) -> GLFWjoystickfun))
+  (glfwUpdateGamepadMappings          ((string : _string/utf-8) -> _int))
+  (glfwGetGamepadName                 ((jid : _int) -> _string/utf-8))
+  (glfwGetGamepadState                ((jid : _int) (state : (_ptr o _GLFWgamepadstate)) -> (connected : _int) -> (values connected state)))
   (glfwSetClipboardString             ((window : _pointer) (string : _string/utf-8) -> _void))
   (glfwGetClipboardString             ((window : _pointer) -> _string/utf-8))
   (glfwGetTime                        (-> _double))
   (glfwSetTime                        ((time : _double) -> _void))
   (glfwGetTimerValue                  (-> _uint64))
   (glfwGetTimerFrequency              (-> _uint64))
+  
+  ;context
   (glfwMakeContextCurrent             ((window : _pointer) -> _void))
-  (glfwGetCurrentContext              (-> _pointer)) ; returns GLFWwindow*
+  (glfwGetCurrentContext              (-> _pointer))
+
+  ;window
   (glfwSwapBuffers                    ((window : _pointer) -> _void))
+
+  ;context
   (glfwSwapInterval                   ((interval : _int) -> _void))
   (glfwExtensionSupported             ((extension : _string/utf-8) -> _int))
-  (glfwGetProcAddress                 ((procname : _string/utf-8) -> GLFWglproc))
-  (glfwVulkanSupported                (-> _int));
-  (glfwGetRequiredInstanceExtensions  ((count : (_ptr o _uint32)) -> (_ptr o _string/utf-8)))
-
-  ;; Not tested. Vulkan structs are unknown. May not match the implementation.
-  (glfwGetInstanceProcAddress         ((instance : _pointer) (procname : _string/utf-8) -> GLFWvkproc))
-  (glfwGetPhysicalDevicePresentationSupport ((instance : _pointer) (device : _pointer) (queuefamily : _uint32) -> _int))
-  (glfwCreateWindowSurface            ((instance : _pointer) (window : _pointer) (allocator : _pointer) (surface : _pointer) -> _pointer)))
+  (glfwGetProcAddress                 ((procname : _string/utf-8) -> GLFWglproc)))
